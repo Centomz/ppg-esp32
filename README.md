@@ -12,7 +12,7 @@ I wanted to understand how wearable devices measure the pulse with light, by bui
 
 ## Results
 
-Preliminary comparison with a smartwatch (reference), fingertip on the sensor, 30 s recordings:
+Preliminary comparison with a smartwatch (reference), fingertip on the sensor, 60 s recordings:
 
 | Condition | This project | Smartwatch | Difference |
 |---|---|---|---|
