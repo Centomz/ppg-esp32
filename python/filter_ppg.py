@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import butter, filtfilt
 
-data = np.loadtxt("data/ppg_raw.csv", delimiter=",", skiprows=1)
+data = np.loadtxt("data/ppg_raw_exercice.csv", delimiter=",", skiprows=1)
 t = (data[:, 0] - data[0, 0]) / 1000.0
 ir = data[:, 2]
 

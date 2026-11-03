@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import butter, filtfilt, find_peaks
 
-data = np.loadtxt("data/ppg_raw.csv", delimiter=",", skiprows=1)
+data = np.loadtxt("data/ppg_raw_exercice.csv", delimiter=",", skiprows=1)
 t = (data[:, 0] - data[0, 0]) / 1000.0
 ir = data[:, 2]
 
@@ -18,14 +18,18 @@ sig = filtfilt(b, a, ir)
 ok = (t > t[0] + 1) & (t < t[-1] - 1)
 t, sig = t[ok], sig[ok]
 
-peaks, _ = find_peaks(sig, distance=int(0.4 * fs), prominence=0.9 * np.std(sig))
+peaks, _ = find_peaks(sig, distance=int(0.4 * fs), prominence=0.3 * np.std(sig))
 
 ibi = np.diff(t[peaks])             # time between beats, in seconds
+median_ibi = np.median(ibi)
+good = (ibi > 0.6 * median_ibi) & (ibi < 1.4 * median_ibi)
 hr = 60.0 / ibi                     # instantaneous heart rate, in bpm
 
 print(f"{len(peaks)} beats detected")
 print(f"mean HR = {60.0 / ibi.mean():.1f} bpm")
 print(f"min / max instantaneous HR = {hr.min():.0f} / {hr.max():.0f} bpm")
+print(f"{good.sum()} of {len(ibi)} intervals kept")
+print(f"mean HR (cleaned) = {60.0 / ibi[good].mean():.1f} bpm")
 
 fig, axes = plt.subplots(2, 1, sharex=True, figsize=(10, 7))
 axes[0].plot(t, sig)
