@@ -46,6 +46,58 @@ Key observations:
 - With this sensor, more blood in the finger means more light absorbed, so the raw value goes *down* at each beat. Peaks are detected on the filtered signal, where the single main peak before the sharp drop is the cleanest feature.
 - A prominence threshold that is too low counts the small bump after each beat (dicrotic notch) as an extra beat, which produces impossible instantaneous rates (126 and 149 bpm at rest). Raising the threshold removed them.
 
+## Physiological background
+
+This section links the project to the physiology of the pulse wave. The reference is Allen (2007), *Photoplethysmography and its application in clinical physiological measurement*, Physiological Measurement 28(3):R1-R39.
+
+### What PPG measures
+
+A light source shines into the tissue and a photodiode measures how much light comes back. More blood in the tissue means more light absorbed. PPG therefore follows blood **volume**, not blood flow.
+
+The signal has two parts:
+- **DC**: a large, slow baseline set by the tissue, venous blood, breathing, temperature regulation and sympathetic activity.
+- **AC**: the small pulsatile part, at the heart rate (about 1 Hz at 60 bpm). Each beat sends a pressure wave that briefly increases the blood volume under the sensor.
+
+In my recordings the AC part is about 80 counts on a DC level of about 55,000, roughly 0.15 %.
+
+### Reflection mode on a fingertip
+
+The MAX30102 has its LEDs (red and near-infrared) and its photodiode side by side on the same face. Light enters the finger, scatters in the tissue, and part of it returns to the detector. This is **reflection mode**. In **transmission mode** the light crosses the tissue between an LED and a detector on opposite sides (finger clip, ear). Reflection works on more body sites but is more sensitive to contact pressure and motion.
+
+Red and near-infrared light both cross tissue easily, which is why these wavelengths are used. Two wavelengths are needed for SpO2, because oxygenated and deoxygenated haemoglobin absorb them differently (see the roadmap).
+
+### Anatomy of one pulse
+
+A pulse wave has two phases:
+- **Anacrotic phase**: the rising edge of blood volume, during systole.
+- **Catacrotic phase**: the falling edge, during diastole. On it, a small **dicrotic notch** appears in elastic arteries, followed by a dicrotic wave.
+
+The shape depends on the arteries. In stiffer arteries (age, hypertension, diabetes) the wave travels faster, the reflected wave returns earlier, the notch fades and the pulse looks more triangular. Timing and shape features such as pulse transit time, stiffness index and reflection index are built on this. This project does not compute them yet.
+
+### What my recordings show
+
+On my recordings (see the raw and filtered plots), each beat in the raw IR signal is a **sharp drop followed by a slow recovery**. This matches the physiology: at the start of systole blood volume rises quickly, more light is absorbed, and the raw value falls. During diastole the value recovers slowly, and a small secondary bump on the recovery is the dicrotic notch and wave.
+
+Two consequences:
+1. I do not invert the signal. The detected peaks in `heart_rate.py` sit at the end of diastole, just before the sharp fall. They mark the **onset (foot) of each pulse**, not the systolic peak. This is a good timing point for heart rate, and the foot is also the reference point used for transit times in the literature.
+2. The false beats at 126 and 149 bpm came from the dicrotic notch and wave crossing the detection threshold. A higher prominence threshold removed them.
+
+### Why the filter settings matter
+
+| Choice | Physiological effect |
+|---|---|
+| High-pass at 0.5 Hz | Removes the DC and slow drift. Fine for heart rate, but it distorts the pulse shape. |
+| Low-pass at 5 Hz | Removes fast noise. It also smooths the notch. |
+| `filtfilt` (zero phase) | Does not shift beats in time, which matters for any later timing measure. |
+
+For shape features (stiffness index, reflection index, second derivative) a lower high-pass cut-off and a higher low-pass cut-off would be needed.
+
+### What this project cannot claim
+
+- It estimates heart rate only. It does not measure blood pressure, SpO2, arterial stiffness or cardiac output.
+- Reproducibility depends on contact pressure, posture, temperature, breathing and acclimatisation. These are not controlled yet.
+- Motion is the main source of artefacts. Walking is at about 1 to 3 Hz, which overlaps the heartbeat, so filtering alone cannot remove it.
+
 ## Hardware
 
 | Part | Notes |
