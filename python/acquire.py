@@ -6,12 +6,13 @@ import matplotlib.pyplot as plt
 
 PORT = "/dev/cu.usbserial-0001"   # same port as in the Arduino IDE
 BAUD = 115200                     # must match Serial.begin() in the sketch
-DURATION_S = 30                   # how long we record
-OUT = "ppg_raw.csv"
+DURATION_S = 60                   # how long we record
+OUT = "ppg_raw_exercice.csv"
 
 ser = serial.Serial(PORT, BAUD, timeout=1)
 time.sleep(2)                     # the ESP32 reboots when the port opens
 ser.reset_input_buffer()          # throw away old data
+ser.readline()                    # discard the first line, it may be cut in the middle
 
 rows = []
 start = time.time()
