@@ -157,6 +157,7 @@ The full build log, including the mistakes and how they were fixed, is in [`docs
 - Peak-detection parameters were tuned on the same recording used to judge them, so results may be optimistic.
 - Offline processing only (whole recording at once); not real time.
 - Not tested with movement, different skin tones, cold fingers or other sensor placements.
+- The reference is a consumer smartwatch, which is itself a PPG device, so it shares the same sources of error. It was not recorded simultaneously with the sensor: heart rate falls quickly after exercise, so the 3.4 bpm difference after squats cannot be interpreted. A chest strap or ECG recorded at the same time is planned (see Roadmap).
 
 ## Roadmap
 
